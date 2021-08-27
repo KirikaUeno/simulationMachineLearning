@@ -35,10 +35,10 @@ public class MainPanel extends JPanel {
 
     public final InputParametersPanel inputPanel = new InputParametersPanel(this);
     public final OutputParameterPanel outputPanel = new OutputParameterPanel(this);
-    public final Button predictNN = new Button("predict NN");
-    public final Button predictTrees = new Button("predict Tree");
-    public final Button trainAndPredictNN = new Button("train and predict NN");
-    public final Button trainAndPredictTrees = new Button("train and predict Tree");
+    public final Button trainAndPredict = new Button("train and predict");
+    public final Button predict = new Button("predict");
+    public final JLabel chooseModel = new JLabel("choose model");
+    public final Choice model = new Choice();
     public final TextField pathMLField = new TextField("/");
     public final Button loadResults = new Button("load simulation results");
 
@@ -64,10 +64,14 @@ public class MainPanel extends JPanel {
         switchToML.addActionListener(e->switchToMLAction());
         switchToSimulation.addActionListener(e->switchToSimulationAction());
         loadResults.addActionListener(e->loadPath());
-        trainAndPredictTrees.addActionListener(e->trainAndPredict());
-        trainAndPredictNN.addActionListener(e->trainAndPredict());
-        predictNN.addActionListener(e->predict());
-        predictTrees.addActionListener(e->predict());
+        trainAndPredict.addActionListener(e->trainAndPredict());
+        predict.addActionListener(e->predict());
+
+        model.add("NN");
+        model.add("Tree");
+        model.add("Tree Boost");
+        model.add("NN+Boost");
+        model.select(1);
 
         layout.putConstraint(SpringLayout.WEST, pathField, 5, SpringLayout.WEST, this);
         layout.putConstraint(SpringLayout.NORTH, pathField, 10, SpringLayout.NORTH, this);
@@ -110,14 +114,14 @@ public class MainPanel extends JPanel {
         layout.putConstraint(SpringLayout.NORTH, pathMLField, 10, SpringLayout.NORTH, this);
         layout.putConstraint(SpringLayout.WEST, loadResults, 5, SpringLayout.EAST, pathMLField);
         layout.putConstraint(SpringLayout.NORTH, loadResults, 10, SpringLayout.NORTH, this);
-        layout.putConstraint(SpringLayout.WEST, predictNN, 5, SpringLayout.WEST, this);
-        layout.putConstraint(SpringLayout.SOUTH, predictNN, -10, SpringLayout.SOUTH, this);
-        layout.putConstraint(SpringLayout.WEST, predictTrees, 5, SpringLayout.EAST, predictNN);
-        layout.putConstraint(SpringLayout.SOUTH, predictTrees, -10, SpringLayout.SOUTH, this);
-        layout.putConstraint(SpringLayout.WEST, trainAndPredictTrees, 5, SpringLayout.EAST, predictTrees);
-        layout.putConstraint(SpringLayout.SOUTH, trainAndPredictTrees, -10, SpringLayout.SOUTH, this);
-        layout.putConstraint(SpringLayout.WEST, trainAndPredictNN, 5, SpringLayout.EAST, trainAndPredictTrees);
-        layout.putConstraint(SpringLayout.SOUTH, trainAndPredictNN, -10, SpringLayout.SOUTH, this);
+        layout.putConstraint(SpringLayout.WEST, predict, 5, SpringLayout.WEST, this);
+        layout.putConstraint(SpringLayout.SOUTH, predict, -10, SpringLayout.SOUTH, this);
+        layout.putConstraint(SpringLayout.WEST, trainAndPredict, 5, SpringLayout.EAST, predict);
+        layout.putConstraint(SpringLayout.SOUTH, trainAndPredict, -10, SpringLayout.SOUTH, this);
+        layout.putConstraint(SpringLayout.WEST, chooseModel, 5, SpringLayout.EAST, trainAndPredict);
+        layout.putConstraint(SpringLayout.SOUTH, chooseModel, -10, SpringLayout.SOUTH, this);
+        layout.putConstraint(SpringLayout.WEST, model, 5, SpringLayout.EAST, chooseModel);
+        layout.putConstraint(SpringLayout.SOUTH, model, -10, SpringLayout.SOUTH, this);
 
         setLayout(layout);
         add(pathField);
@@ -134,18 +138,18 @@ public class MainPanel extends JPanel {
         add(switchToSimulation);
         add(inputPanel);
         add(outputPanel);
-        add(trainAndPredictNN);
-        add(trainAndPredictTrees);
-        add(predictTrees);
-        add(predictNN);
+        add(trainAndPredict);
+        add(model);
+        add(chooseModel);
+        add(predict);
         add(pathMLField);
         add(loadResults);
         loadResults.setVisible(false);
         pathMLField.setVisible(false);
-        predictNN.setVisible(false);
-        predictTrees.setVisible(false);
-        trainAndPredictTrees.setVisible(false);
-        trainAndPredictNN.setVisible(false);
+        predict.setVisible(false);
+        model.setVisible(false);
+        chooseModel.setVisible(false);
+        trainAndPredict.setVisible(false);
         outputPanel.setVisible(false);
         inputPanel.setVisible(false);
         switchToSimulation.setVisible(false);
@@ -404,10 +408,10 @@ public class MainPanel extends JPanel {
     public void switchToMLAction(){
         loadResults.setVisible(true);
         pathMLField.setVisible(true);
-        predictNN.setVisible(true);
-        predictTrees.setVisible(true);
-        trainAndPredictTrees.setVisible(true);
-        trainAndPredictNN.setVisible(true);
+        predict.setVisible(true);
+        chooseModel.setVisible(true);
+        trainAndPredict.setVisible(true);
+        model.setVisible(true);
         outputPanel.setVisible(true);
         inputPanel.setVisible(true);
         switchToSimulation.setVisible(true);
@@ -427,10 +431,10 @@ public class MainPanel extends JPanel {
     public void switchToSimulationAction(){
         loadResults.setVisible(false);
         pathMLField.setVisible(false);
-        predictNN.setVisible(false);
-        predictTrees.setVisible(false);
-        trainAndPredictTrees.setVisible(false);
-        trainAndPredictNN.setVisible(false);
+        chooseModel.setVisible(false);
+        trainAndPredict.setVisible(false);
+        predict.setVisible(false);
+        model.setVisible(false);
         outputPanel.setVisible(false);
         inputPanel.setVisible(false);
         switchToSimulation.setVisible(false);
@@ -465,8 +469,23 @@ public class MainPanel extends JPanel {
             ((DefaultTableModel) inputPanel.table.getModel()).fireTableDataChanged();
             System.out.println("changed input table:");
             System.out.println(inputPanel.parameters);
+            //clear?
+            /*
+            for(int i=1;i<130;i++) {
+                Process process;
+                String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","getInformationDESY.py", String.valueOf((10 * i))};
+                process = Runtime.getRuntime().exec(cmd);
+                InputStream stdout = process.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
+                String line1;
+                while ((line1 = reader.readLine()) != null) {
+                    System.out.println("stdout: " + line1);
+                }
+            }
+            */
             Process process;
-            process = Runtime.getRuntime().exec("/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9 getInformationDESY.py");
+            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","getInformationDESY.py"};
+            process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
             String line1;
@@ -548,7 +567,8 @@ public class MainPanel extends JPanel {
         correctInformation();
         try {
             Process process;
-            process = Runtime.getRuntime().exec("/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9 trainML.py");
+            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","trainML.py", model.getSelectedItem()};
+            process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
             String line1;
@@ -567,7 +587,8 @@ public class MainPanel extends JPanel {
         saveInputParameters();
         try {
             Process process;
-            process = Runtime.getRuntime().exec("/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9 predict.py");
+            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","predict.py", model.getSelectedItem()};
+            process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
             String line1;

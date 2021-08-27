@@ -1,5 +1,7 @@
 import io
 import math
+import sys
+
 import numpy as np
 import os
 import os.path
@@ -78,12 +80,10 @@ def load_dataset_txt():
     info = ""
     f = open("information.txt", "w")
     i = -1
-    i = 15
     print("start python")
     while os.path.exists("run" + str(i+1) + ".0528.001"):
+        print(i)
         i += 1
-        if i==88:
-            break
         x_dict = get_inputs_main("run" + str(i) + ".in")
         y_dict = get_outputs("run" + str(i) + ".0528.001")
 
@@ -110,4 +110,27 @@ def load_dataset_txt():
     print("end python")
 
 
+def delete_files(ini):
+    print("start python")
+    for j in range(10):
+        print(j+ini)
+        i=j+ini
+        try:
+            os.system("rm "+"run" + str(i) + ".in")
+            os.system("rm "+"run" + str(i) + ".LandF.001")
+            os.system("rm "+"run" + str(i) + ".Xemit.001")
+            os.system("rm "+"run" + str(i) + ".Yemit.001")
+            os.system("rm "+"run" + str(i) + ".Zemit.001")
+            os.system("rm "+"run" + str(i) + ".log")
+            os.system("rm "+"run" + str(i) + ".Log.001")
+            os.system("rm "+"run" + str(i) + ".ref.001")
+            os.system("rm "+"o_out" + str(i) + ".txt")
+            os.system("rm "+"e_out" + str(i) + ".txt")
+            os.system("rm "+"run" + str(i) + ".0528.001")
+        except Exception:
+            pass
+    print("end python")
+
+
+#delete_files(int(sys.argv[1]))
 load_dataset_txt()
