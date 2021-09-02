@@ -8,6 +8,8 @@ import os.path
 from numpy import savetxt
 
 
+z_coordinate = "0528"
+
 def get_inputs_main(main_input):
     values_to_find_input = []
     f = io.open("inputParameters.txt", 'r', encoding='utf-8', newline='\n', errors='ignore')
@@ -43,8 +45,8 @@ def get_outputs(output_file):
         answer["Y_pos"] = float(arr_ref[1]) + np.mean(arr[:, 1])
         answer["Z_pos"] = float(arr_ref[2]) + np.mean(arr[:, 2])
         answer["average_kin_energy"] = float(arr_ref[5]) - 511000 + np.mean(arr[:, 5])
-        answer["alfa_X"] = np.sqrt(np.mean(np.square(arr[:, 3]))) / (float(arr_ref[5]) - 511000)
-        answer["alfa_Y"] = np.sqrt(np.mean(np.square(arr[:, 4]))) / (float(arr_ref[5]) - 511000)
+        answer["alpha_X"] = np.sqrt(np.mean(np.square(arr[:, 3]))) / (float(arr_ref[5]) - 511000)
+        answer["alpha_Y"] = np.sqrt(np.mean(np.square(arr[:, 4]))) / (float(arr_ref[5]) - 511000)
     answer["Charge"] = np.sum(arr[:, 7])
     answer["sigZ"] = np.sqrt(np.mean(np.square(arr[:, 2])))
     answer["sigX"] = np.sqrt(np.mean(np.square(arr[:, 0])))
@@ -59,7 +61,7 @@ def get_outputs(output_file):
 
 def load_dataset_csv():
     x_dict = get_inputs_main("run" + str(0) + ".in")
-    y_dict = get_outputs("run" + str(0) + ".0528.001")
+    y_dict = get_outputs("run" + str(0) + "."+z_coordinate+".001")
 
     arrX = np.array([list(x_dict.values())])
     arrY = np.array([list(y_dict.values())])
@@ -67,7 +69,7 @@ def load_dataset_csv():
     import os.path
     while os.path.exists("run" + str(i + 1) + ".in"):
         x_dict = get_inputs_main("run" + str(i + 1) + ".in")
-        y_dict = get_outputs("run" + str(i + 1) + ".0528.001")
+        y_dict = get_outputs("run" + str(i + 1) + "."+z_coordinate+".001")
 
         arrX = np.concatenate((arrX, np.array([list(x_dict.values())])))
         arrY = np.concatenate((arrY, np.array([list(y_dict.values())])))
@@ -81,11 +83,11 @@ def load_dataset_txt():
     f = open("information.txt", "w")
     i = -1
     print("start python")
-    while os.path.exists("run" + str(i+1) + ".0528.001"):
+    while os.path.exists("run" + str(i+1) + "."+z_coordinate+".001"):
         print(i)
         i += 1
         x_dict = get_inputs_main("run" + str(i) + ".in")
-        y_dict = get_outputs("run" + str(i) + ".0528.001")
+        y_dict = get_outputs("run" + str(i) + "."+z_coordinate+".001")
 
         info += "input:" + "\n"
         for j in range(len(x_dict)):
@@ -126,7 +128,7 @@ def delete_files(ini):
             os.system("rm "+"run" + str(i) + ".ref.001")
             os.system("rm "+"o_out" + str(i) + ".txt")
             os.system("rm "+"e_out" + str(i) + ".txt")
-            os.system("rm "+"run" + str(i) + ".0528.001")
+            os.system("rm "+"run" + str(i) + "."+z_coordinate+".001")
         except Exception:
             pass
     print("end python")
