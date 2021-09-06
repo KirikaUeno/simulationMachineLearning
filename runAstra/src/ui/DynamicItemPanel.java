@@ -9,15 +9,13 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class DynamicItemPanel extends JPanel {
-    private final MainPanel mainPanel;
     public JTable dynamicItemTable;
     public ArrayList<SimulationParameter> dynamicParameters = new ArrayList<>();
 
-    public DynamicItemPanel(MainPanel mainPanel){
-        setPreferredSize(new Dimension(Config.boardWidth/2, Config.boardHeight));
+    public DynamicItemPanel(){
+        setPreferredSize(new Dimension(Config.boardWidth*2/3, Config.boardHeight));
         setFocusable(true);
         setName("dynamicItemPanel");
-        this.mainPanel = mainPanel;
         initializeVariables();
     }
 

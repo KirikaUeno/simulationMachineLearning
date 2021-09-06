@@ -14,7 +14,7 @@ public class OutputParameterPanel extends JPanel {
     public ArrayList<OutputParameter> parameters = new ArrayList<>();
 
     public OutputParameterPanel(){
-        setPreferredSize(new Dimension(Config.boardWidth*2/3, Config.boardHeight));
+        setPreferredSize(new Dimension(Config.boardWidth/2, Config.boardHeight));
         setFocusable(true);
         setName("output panel");
         initializeVariables();

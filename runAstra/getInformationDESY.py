@@ -80,9 +80,8 @@ def load_dataset_txt(mid_file_name):
     info = ""
     f = open("information.txt", "w")
     i = -1
-    print("start python")
     while os.path.exists("run" + str(i + 1) + "." + mid_file_name + ".001"):
-        print(i)
+        print(i+1)
         i += 1
         x_dict = get_inputs_main("run" + str(i) + ".in")
         y_dict = get_outputs("run" + str(i) + "." + mid_file_name + ".001")
@@ -107,11 +106,9 @@ def load_dataset_txt(mid_file_name):
             pass
     f.write(info)
     f.close()
-    print("end python")
 
 
 def delete_files(ini, mid_file_name):
-    print("start python")
     for j in range(10):
         print(j + ini)
         i = j + ini
@@ -129,8 +126,7 @@ def delete_files(ini, mid_file_name):
             os.system("rm " + "run" + str(i) + "." + mid_file_name + ".001")
         except Exception:
             pass
-    print("end python")
 
 
 # delete_files(int(sys.argv[1]),int(sys.argv[2]))
-load_dataset_txt(int(sys.argv[1]))
+load_dataset_txt(sys.argv[1])

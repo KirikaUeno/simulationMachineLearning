@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import io
-import trainML
+import loadDataset
 
 x_coord = 0
 y_coord = 1
@@ -24,7 +24,6 @@ def get_x_test_and_y_weights():
     for line in f:
         x_test.append(float(line[:-1]))
 
-    print(x_test)
     f = io.open("weights.txt", 'r', encoding='utf-8', newline='\n', errors='ignore')
     x_weights = []
     y_weights = []
@@ -54,7 +53,6 @@ def predict_nn():
     y = []
     for j in range(len(pred[0])):
         y.append(pred[0, j].item())
-    print(y)
     y = list(np.array(y) / np.array(y_weights))
     info = ""
     f = open("predictOutput.txt", "w")
@@ -82,14 +80,12 @@ def draw_NN():
 
 def predict_tree():
     x_test, y_weights = get_x_test_and_y_weights()
-
     filename = 'treeModel.sav'
     regr = pickle.load(open(filename, 'rb'))
     pred = regr.predict([list(x_test)])
     y = []
     for j in range(len(pred[0])):
         y.append(pred[0, j].item())
-    print(y)
     y = list(np.array(y) / np.array(y_weights))
     info = ""
     f = open("predictOutput.txt", "w")
@@ -117,7 +113,6 @@ def predict_tree_boost():
     y = []
     for j in range(len(pred[0])):
         y.append(pred[0, j].item())
-    print(y)
     y = list(np.array(y) / np.array(y_weights))
     info = ""
     f = open("predictOutput.txt", "w")
@@ -159,7 +154,6 @@ def predict_nn_boost():
     y = []
     for j in range(len(pred[0])):
         y.append((pred[0, j].item() + predNN[0, j].item()) / 2)
-    print(y)
     y = list(np.array(y) / np.array(y_weights))
     info = ""
     f = open("predictOutput.txt", "w")
@@ -190,7 +184,7 @@ def draw_NN_boost():
 
 
 def draw_train_results(model_name, model, aux_model=None):
-    train_dataset = trainML.DESY_dataset("informationCorrected.txt")
+    train_dataset = loadDataset.DESY_dataset("informationCorrected.txt")
     X = []
     Y = []
     Z = []
@@ -222,22 +216,23 @@ def draw_train_results(model_name, model, aux_model=None):
             else:
                 list_to_model.append(train_dataset[initial_static][0][i].item() * np.ones(size_x * size_y))
         model_viz = np.expand_dims(np.array(list_to_model).T, 0)
+        model_viz1 = np.array(list_to_model).T
         if model_name == "NN":
             z_surf = np.array(model(torch.FloatTensor(model_viz))[0, :, z_coord].tolist())
         elif model_name == "tree":
-            z_surf = model.predict(model_viz)[:, z_coord]
+            z_surf = model.predict(model_viz1)[:, z_coord]
         elif model_name == "tree_boost":
-            z_surf = model.predict(model_viz)[:, z_coord]
+            z_surf = model.predict(model_viz1)[:, z_coord]
         elif aux_model is not None:
             z_surf = (np.array(model(torch.FloatTensor(model_viz))[0, :, z_coord].tolist()) + aux_model.predict(
-                model_viz)[:, z_coord]) / 2
+                model_viz1)[:, z_coord]) / 2
 
         fig = plt.figure(figsize=(14, 8))
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(X, Y, Z, c='red', marker='o', alpha=0.5)
         ax.plot_surface(x_surf, y_surf, z_surf.reshape(x_surf.shape), alpha=0.4, cmap=cm.coolwarm, linewidth=0,
                         antialiased=False)
-        _, _, names, namesX = trainML.load_dataset("informationCorrected.txt")
+        _, _, names, namesX = loadDataset.load_dataset("informationCorrected.txt")
         ax.set_xlabel(namesX[0][x_coord])
         ax.set_ylabel(namesX[0][y_coord])
         ax.set_zlabel(names[0][z_coord])
@@ -249,23 +244,24 @@ def predict(model):
         predict_nn()
     elif model == "Tree":
         predict_tree()
-    elif model == "Tree Boost":
+    elif model == "Tree_Boost":
         predict_tree_boost()
     elif model == "NN+Boost":
         predict_nn_boost()
-    if model == "NN draw":
-        predict_nn()
-    elif model == "Tree draw":
-        predict_tree()
-    elif model == "Tree Boost draw":
-        predict_tree_boost()
-    elif model == "NN+Boost draw":
-        predict_nn_boost()
+    if model == "NN_draw":
+        draw_NN()
+    elif model == "Tree_draw":
+        draw_tree()
+    elif model == "Tree_Boost_draw":
+        draw_tree_boost()
+    elif model == "NN+Boost_draw":
+        draw_NN_boost()
 
 
 print("start python predict")
-x_coord = int(sys.argv[2])
-y_coord = int(sys.argv[3])
-z_coord = int(sys.argv[4])
-initial_static = int(sys.argv[5])
+if len(sys.argv)>2:
+    x_coord = int(sys.argv[2])
+    y_coord = int(sys.argv[3])
+    z_coord = int(sys.argv[4])
+    initial_static = int(sys.argv[5])
 predict(sys.argv[1])

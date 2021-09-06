@@ -9,15 +9,13 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class InputParametersPanel extends JPanel{
-    private final MainPanel mainPanel;
     public JTable table;
     public ArrayList<InputParameter> parameters = new ArrayList<>();
 
-    public InputParametersPanel(MainPanel mainPanel){
+    public InputParametersPanel(){
         setPreferredSize(new Dimension(Config.boardWidth/2, Config.boardHeight));
         setFocusable(true);
         setName("input panel");
-        this.mainPanel = mainPanel;
         initializeVariables();
     }
 

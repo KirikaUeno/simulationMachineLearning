@@ -82,6 +82,7 @@ public class InputParametersTable extends DefaultTableModel {
                 firstPlotInd = rowIndex;
             }
             au.isHorizontalAxis = true;
+            this.fireTableRowsUpdated(0,auList.size()-1);
         }
     }
 }

@@ -18,8 +18,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class MainPanel extends JPanel {
-    public final StaticItemPanel staticItemPanel = new StaticItemPanel(this);
-    public final DynamicItemPanel dynamicItemPanel = new DynamicItemPanel(this);
+    public final StaticItemPanel staticItemPanel = new StaticItemPanel();
+    public final DynamicItemPanel dynamicItemPanel = new DynamicItemPanel();
+    public final PythonPathPanel pythonPathPanel = new PythonPathPanel();
     private final SpringLayout layout = new SpringLayout();
     private final TextField pathField = new TextField("run.in");
     private final TextField outMidName = new TextField("0528");
@@ -34,7 +35,7 @@ public class MainPanel extends JPanel {
     private final Button moveRight = new Button("->");
     public ArrayList<SimulationParameter> allParameters = new ArrayList<>();
 
-    public final InputParametersPanel inputPanel = new InputParametersPanel(this);
+    public final InputParametersPanel inputPanel = new InputParametersPanel();
     public final OutputParameterPanel outputPanel = new OutputParameterPanel();
     public final Button trainAndPredict = new Button("train and predict");
     public final Button predict = new Button("predict");
@@ -47,8 +48,11 @@ public class MainPanel extends JPanel {
     public final JLabel getAllParamsFrom = new JLabel("get all other plot params from simulation :");
     public final TextField paramsIndex = new TextField("0");
     public final Button draw = new Button("draw train results");
+    public final Button showPythonPath = new Button("PY");
 
     private int fileNumber = 0;
+    //"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9"
+    private boolean pythonPathShowingState = false;
 
     public MainPanel() {
         setPreferredSize(new Dimension(Config.boardWidth, Config.boardHeight));
@@ -74,10 +78,13 @@ public class MainPanel extends JPanel {
         trainAndPredict.addActionListener(e->trainAndPredict());
         predict.addActionListener(e->predict());
         draw.addActionListener(e->draw());
+        showPythonPath.addActionListener(e->{pythonPathPanel.setVisible(!pythonPathShowingState);
+            pythonPathShowingState = !pythonPathShowingState; inputPanel.setVisible(!pythonPathShowingState);
+            outputPanel.setVisible(!pythonPathShowingState);});
 
         model.add("NN");
         model.add("Tree");
-        model.add("Tree Boost");
+        model.add("Tree_Boost");
         model.add("NN+Boost");
         model.select(1);
 
@@ -128,6 +135,8 @@ public class MainPanel extends JPanel {
         layout.putConstraint(SpringLayout.NORTH, loadResults, 10, SpringLayout.SOUTH, enterOutMidName);
         layout.putConstraint(SpringLayout.WEST, loadInputs, 5, SpringLayout.EAST, loadResults);
         layout.putConstraint(SpringLayout.NORTH, loadInputs, 10, SpringLayout.SOUTH, enterOutMidName);
+        layout.putConstraint(SpringLayout.EAST, showPythonPath, -5, SpringLayout.EAST, this);
+        layout.putConstraint(SpringLayout.NORTH, showPythonPath, 10, SpringLayout.SOUTH, enterOutMidName);
         layout.putConstraint(SpringLayout.WEST, predict, 5, SpringLayout.WEST, this);
         layout.putConstraint(SpringLayout.SOUTH, predict, -10, SpringLayout.SOUTH, this);
         layout.putConstraint(SpringLayout.WEST, trainAndPredict, 5, SpringLayout.EAST, predict);
@@ -143,7 +152,12 @@ public class MainPanel extends JPanel {
         layout.putConstraint(SpringLayout.WEST, draw, 5, SpringLayout.EAST, paramsIndex);
         layout.putConstraint(SpringLayout.SOUTH, draw, -10, SpringLayout.NORTH, predict);
 
+        layout.putConstraint(SpringLayout.WEST, pythonPathPanel, 5, SpringLayout.WEST, this);
+        layout.putConstraint(SpringLayout.EAST, pythonPathPanel, -5, SpringLayout.EAST, this);
+        layout.putConstraint(SpringLayout.NORTH, pythonPathPanel, 80, SpringLayout.NORTH, this);
+
         setLayout(layout);
+        add(pythonPathPanel);
         add(pathField);
         add(loadPath);
         add(sendRandomJob);
@@ -170,6 +184,7 @@ public class MainPanel extends JPanel {
         add(paramsIndex);
         add(loadInputs);
         add(draw);
+        add(showPythonPath);
         loadResults.setVisible(false);
         pathMLField.setVisible(false);
         predict.setVisible(false);
@@ -185,6 +200,8 @@ public class MainPanel extends JPanel {
         paramsIndex.setVisible(false);
         loadInputs.setVisible(false);
         draw.setVisible(false);
+        showPythonPath.setVisible(false);
+        pythonPathPanel.setVisible(false);
         repaint();
     }
 
@@ -237,17 +254,14 @@ public class MainPanel extends JPanel {
     }
 
     public void sendSteppedJob(int level, ArrayList<Double> values) {
-        System.out.println("level: "+level+" out of " +(dynamicItemPanel.dynamicParameters.size()-1));
         System.out.println("fileNumber: "+fileNumber);
         double currentValue = dynamicItemPanel.dynamicParameters.get(level).getLowerValue();
         while (currentValue < dynamicItemPanel.dynamicParameters.get(level).getUpperValue()) {
             if ((level + 1) < dynamicItemPanel.dynamicParameters.size()) {
-                System.out.println("opening new function");
                 ArrayList<Double> valuesNew = new ArrayList<>(values);
                 valuesNew.add(currentValue);
                 sendSteppedJob(level + 1,valuesNew);
             } else {
-                System.out.println("sending the job");
                 File original = new File("run.in");
                 Path copied = Paths.get("run" + fileNumber + ".in");
                 Path originalPath = original.toPath();
@@ -341,9 +355,7 @@ public class MainPanel extends JPanel {
             BufferedReader br = new BufferedReader(
                     new InputStreamReader(p.getInputStream()));
             while ((s = br.readLine()) != null)
-                System.out.println("line: " + s);
             p.waitFor();
-            System.out.println("exit: " + p.exitValue());
             p.destroy();
         } catch (Exception ignored) {
         }
@@ -453,6 +465,7 @@ public class MainPanel extends JPanel {
         paramsIndex.setVisible(true);
         loadInputs.setVisible(true);
         draw.setVisible(true);
+        showPythonPath.setVisible(true);
         pathField.setVisible(false);
         loadPath.setVisible(false);
         sendRandomJob.setVisible(false);
@@ -482,6 +495,7 @@ public class MainPanel extends JPanel {
         paramsIndex.setVisible(false);
         loadInputs.setVisible(false);
         draw.setVisible(false);
+        showPythonPath.setVisible(false);
         pathField.setVisible(true);
         loadPath.setVisible(true);
         sendRandomJob.setVisible(true);
@@ -538,7 +552,7 @@ public class MainPanel extends JPanel {
             }
             */
             Process process;
-            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","getInformationDESY.py", outMidName.getText()};
+            String[] cmd = {pythonPathPanel.pythonPath.getText(),"getInformationDESY.py", outMidName.getText()};
             process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
@@ -616,11 +630,10 @@ public class MainPanel extends JPanel {
     }
 
     public void trainAndPredict(){
-        System.out.println("start train");
         correctInformation();
         try {
             Process process;
-            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","trainML.py", model.getSelectedItem()};
+            String[] cmd = {pythonPathPanel.pythonPath.getText(),"trainML.py", model.getSelectedItem()};
             process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
@@ -656,7 +669,7 @@ public class MainPanel extends JPanel {
                     zCoord = i;
                 }
             }
-            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","predict.py", model.getSelectedItem()+" draw", String.valueOf(xCoord), String.valueOf(yCoord), String.valueOf(zCoord),paramsIndex.getText()};
+            String[] cmd = {pythonPathPanel.pythonPath.getText(),"predict.py", model.getSelectedItem()+"_draw", String.valueOf(xCoord), String.valueOf(yCoord), String.valueOf(zCoord),paramsIndex.getText()};
             process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
@@ -670,11 +683,10 @@ public class MainPanel extends JPanel {
     }
 
     public void predict(){
-        System.out.println("start predict");
         saveInputParameters();
         try {
             Process process;
-            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","predict.py", model.getSelectedItem()};
+            String[] cmd = {pythonPathPanel.pythonPath.getText(),"predict.py", model.getSelectedItem()};
             process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));

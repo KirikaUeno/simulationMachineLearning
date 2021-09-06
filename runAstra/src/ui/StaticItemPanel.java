@@ -9,15 +9,13 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class StaticItemPanel extends JPanel {
-    private final MainPanel mainPanel;
     public JTable staticItemTable;
     public ArrayList<SimulationParameter> staticParameters = new ArrayList<>();
 
-    public StaticItemPanel(MainPanel mainPanel){
-        setPreferredSize(new Dimension(Config.boardWidth/2, Config.boardHeight));
+    public StaticItemPanel(){
+        setPreferredSize(new Dimension(Config.boardWidth*2/5, Config.boardHeight));
         setFocusable(true);
         setName("staticItemPanel");
-        this.mainPanel = mainPanel;
         initializeVariables();
     }
 
