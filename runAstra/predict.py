@@ -33,11 +33,11 @@ def get_x_test_and_y_weights():
         elif line != "":
             y_weights.append(float(line[:-1]))
 
-    return list(np.array(x_test) * np.array(x_weights)), y_weights
+    return x_test, x_weights, y_weights
 
 
 def predict_nn():
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
 
     nn_model = nn.Sequential(
         nn.Linear(len(x_test), 256, bias=True),
@@ -49,7 +49,7 @@ def predict_nn():
     nn_model.type(torch.FloatTensor)
     nn_model.load_state_dict(torch.load("nnModel.pt"))
 
-    pred = nn_model(torch.FloatTensor([x_test]))
+    pred = nn_model(torch.FloatTensor([list(np.array(x_test) * np.array(x_weights))]))
     y = []
     for j in range(len(pred[0])):
         y.append(pred[0, j].item())
@@ -64,7 +64,7 @@ def predict_nn():
 
 
 def draw_NN():
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
 
     nn_model = nn.Sequential(
         nn.Linear(len(x_test), 256, bias=True),
@@ -75,14 +75,14 @@ def draw_NN():
     )
     nn_model.type(torch.FloatTensor)
     nn_model.load_state_dict(torch.load("nnModel.pt"))
-    draw_train_results("NN", nn_model)
+    draw_train_results("NN", nn_model, x_weights, y_weights)
 
 
 def predict_tree():
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
     filename = 'treeModel.sav'
     regr = pickle.load(open(filename, 'rb'))
-    pred = regr.predict([list(x_test)])
+    pred = regr.predict([list(list(np.array(x_test) * np.array(x_weights)))])
     y = []
     for j in range(len(pred[0])):
         y.append(pred[0, j].item())
@@ -97,19 +97,19 @@ def predict_tree():
 
 
 def draw_tree():
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
 
     filename = 'treeModel.sav'
     regr = pickle.load(open(filename, 'rb'))
-    draw_train_results("tree", regr)
+    draw_train_results("tree", regr, x_weights, y_weights)
 
 
 def predict_tree_boost():
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
 
     filename = 'treeBoostModel.sav'
     regr = pickle.load(open(filename, 'rb'))
-    pred = regr.predict([list(x_test)])
+    pred = regr.predict([list(list(np.array(x_test) * np.array(x_weights)))])
     y = []
     for j in range(len(pred[0])):
         y.append(pred[0, j].item())
@@ -124,16 +124,15 @@ def predict_tree_boost():
 
 
 def draw_tree_boost():
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
 
     filename = 'treeBoostModel.sav'
     regr = pickle.load(open(filename, 'rb'))
-    draw_train_results("tree_boost", regr)
+    draw_train_results("tree_boost", regr, x_weights, y_weights)
 
 
 def predict_nn_boost():
-    device = torch.device("cuda:0")
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
 
     nn_model = nn.Sequential(
         nn.Linear(len(x_test), 256, bias=True),
@@ -142,15 +141,14 @@ def predict_nn_boost():
         nn.ReLU(inplace=True),
         nn.Linear(1024, len(y_weights)),
     )
-    nn_model.type(torch.cuda.FloatTensor)
-    nn_model.to(device)
+    nn_model.type(torch.FloatTensor)
     nn_model.load_state_dict(torch.load("nnModel.pt"))
 
     filename = 'treeBoostModel.sav'
     regr = pickle.load(open(filename, 'rb'))
-    pred = regr.predict([list(x_test)])
+    pred = regr.predict([list(list(np.array(x_test) * np.array(x_weights)))])
 
-    predNN = nn_model(torch.tensor([x_test]).to(device))
+    predNN = nn_model(torch.tensor([list(np.array(x_test) * np.array(x_weights))]))
     y = []
     for j in range(len(pred[0])):
         y.append((pred[0, j].item() + predNN[0, j].item()) / 2)
@@ -165,7 +163,7 @@ def predict_nn_boost():
 
 
 def draw_NN_boost():
-    x_test, y_weights = get_x_test_and_y_weights()
+    x_test, x_weights, y_weights = get_x_test_and_y_weights()
 
     nn_model = nn.Sequential(
         nn.Linear(len(x_test), 256, bias=True),
@@ -180,10 +178,10 @@ def draw_NN_boost():
     filename = 'treeBoostModel.sav'
     regr = pickle.load(open(filename, 'rb'))
 
-    draw_train_results("NN+boost", nn_model, aux_model=regr)
+    draw_train_results("NN+boost", nn_model, x_weights, y_weights, aux_model=regr)
 
 
-def draw_train_results(model_name, model, aux_model=None):
+def draw_train_results(model_name, model, x_weights, y_weights, aux_model=None):
     train_dataset = loadDataset.DESY_dataset("informationCorrected.txt")
     X = []
     Y = []
@@ -229,8 +227,8 @@ def draw_train_results(model_name, model, aux_model=None):
 
         fig = plt.figure(figsize=(14, 8))
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(X, Y, Z, c='red', marker='o', alpha=0.5)
-        ax.plot_surface(x_surf, y_surf, z_surf.reshape(x_surf.shape), alpha=0.4, cmap=cm.coolwarm, linewidth=0,
+        ax.scatter(X/x_weights[x_coord], Y/x_weights[y_coord], Z/y_weights[z_coord], c='red', marker='o', alpha=0.5)
+        ax.plot_surface(x_surf/x_weights[x_coord], y_surf/x_weights[y_coord], z_surf.reshape(x_surf.shape)/y_weights[z_coord], alpha=0.4, cmap=cm.coolwarm, linewidth=0,
                         antialiased=False)
         _, _, names, namesX = loadDataset.load_dataset("informationCorrected.txt")
         ax.set_xlabel(namesX[0][x_coord])
