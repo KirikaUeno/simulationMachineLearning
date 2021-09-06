@@ -1,7 +1,6 @@
 package ui;
 
 import data.InputParameter;
-import data.SimulationParameter;
 import main.Config;
 
 import javax.swing.*;

@@ -22,25 +22,31 @@ public class MainPanel extends JPanel {
     public final DynamicItemPanel dynamicItemPanel = new DynamicItemPanel(this);
     private final SpringLayout layout = new SpringLayout();
     private final TextField pathField = new TextField("run.in");
+    private final TextField outMidName = new TextField("0528");
     private final Button loadPath = new Button("Load in file");
     private final Button sendRandomJob = new Button("Send random-sampled job");
     private final Button sendSteppedJob = new Button("Send stepped job");
     private final JLabel samplesNumber = new JLabel("samples number:");
     private final TextField samplesNumberField = new TextField("");
     private final JButton switchToML = new JButton("Make a prediction");
-    private final JButton switchToSimulation = new JButton("Make a simulation dataset");
+    private final JButton switchToSimulation = new JButton("Make simulation scan");
     private final Button moveLeft = new Button("<-");
     private final Button moveRight = new Button("->");
     public ArrayList<SimulationParameter> allParameters = new ArrayList<>();
 
     public final InputParametersPanel inputPanel = new InputParametersPanel(this);
-    public final OutputParameterPanel outputPanel = new OutputParameterPanel(this);
+    public final OutputParameterPanel outputPanel = new OutputParameterPanel();
     public final Button trainAndPredict = new Button("train and predict");
     public final Button predict = new Button("predict");
     public final JLabel chooseModel = new JLabel("choose model");
     public final Choice model = new Choice();
     public final TextField pathMLField = new TextField("/");
-    public final Button loadResults = new Button("load simulation results");
+    public final JLabel enterOutMidName = new JLabel("z-coordinate");
+    public final Button loadResults = new Button("calculate dataset from outputs");
+    public final Button loadInputs = new Button("just load inputs");
+    public final JLabel getAllParamsFrom = new JLabel("get all other plot params from simulation :");
+    public final TextField paramsIndex = new TextField("0");
+    public final Button draw = new Button("draw train results");
 
     private int fileNumber = 0;
 
@@ -64,8 +70,10 @@ public class MainPanel extends JPanel {
         switchToML.addActionListener(e->switchToMLAction());
         switchToSimulation.addActionListener(e->switchToSimulationAction());
         loadResults.addActionListener(e->loadPath());
+        loadInputs.addActionListener(e->loadInputs());
         trainAndPredict.addActionListener(e->trainAndPredict());
         predict.addActionListener(e->predict());
+        draw.addActionListener(e->draw());
 
         model.add("NN");
         model.add("Tree");
@@ -103,17 +111,23 @@ public class MainPanel extends JPanel {
         layout.putConstraint(SpringLayout.WEST, dynamicItemPanel, 0, SpringLayout.WEST, this);
 
         layout.putConstraint(SpringLayout.EAST, outputPanel, 0, SpringLayout.EAST, this);
-        layout.putConstraint(SpringLayout.NORTH, outputPanel, 40, SpringLayout.NORTH, this);
+        layout.putConstraint(SpringLayout.NORTH, outputPanel, 65, SpringLayout.NORTH, this);
         layout.putConstraint(SpringLayout.SOUTH, outputPanel, -80, SpringLayout.SOUTH, this);
         layout.putConstraint(SpringLayout.EAST, inputPanel, 0, SpringLayout.WEST, outputPanel);
-        layout.putConstraint(SpringLayout.NORTH, inputPanel, 40, SpringLayout.NORTH, this);
+        layout.putConstraint(SpringLayout.NORTH, inputPanel, 65, SpringLayout.NORTH, this);
         layout.putConstraint(SpringLayout.SOUTH, inputPanel, -80, SpringLayout.SOUTH, outputPanel);
         layout.putConstraint(SpringLayout.WEST, inputPanel, 0, SpringLayout.WEST, this);
 
+        layout.putConstraint(SpringLayout.WEST, enterOutMidName, 5, SpringLayout.WEST, this);
+        layout.putConstraint(SpringLayout.NORTH, enterOutMidName, 10, SpringLayout.NORTH, this);
+        layout.putConstraint(SpringLayout.WEST, outMidName, 5, SpringLayout.EAST, enterOutMidName);
+        layout.putConstraint(SpringLayout.NORTH, outMidName, 10, SpringLayout.NORTH, this);
         layout.putConstraint(SpringLayout.WEST, pathMLField, 5, SpringLayout.WEST, this);
-        layout.putConstraint(SpringLayout.NORTH, pathMLField, 10, SpringLayout.NORTH, this);
+        layout.putConstraint(SpringLayout.NORTH, pathMLField, 10, SpringLayout.SOUTH, enterOutMidName);
         layout.putConstraint(SpringLayout.WEST, loadResults, 5, SpringLayout.EAST, pathMLField);
-        layout.putConstraint(SpringLayout.NORTH, loadResults, 10, SpringLayout.NORTH, this);
+        layout.putConstraint(SpringLayout.NORTH, loadResults, 10, SpringLayout.SOUTH, enterOutMidName);
+        layout.putConstraint(SpringLayout.WEST, loadInputs, 5, SpringLayout.EAST, loadResults);
+        layout.putConstraint(SpringLayout.NORTH, loadInputs, 10, SpringLayout.SOUTH, enterOutMidName);
         layout.putConstraint(SpringLayout.WEST, predict, 5, SpringLayout.WEST, this);
         layout.putConstraint(SpringLayout.SOUTH, predict, -10, SpringLayout.SOUTH, this);
         layout.putConstraint(SpringLayout.WEST, trainAndPredict, 5, SpringLayout.EAST, predict);
@@ -122,6 +136,12 @@ public class MainPanel extends JPanel {
         layout.putConstraint(SpringLayout.SOUTH, chooseModel, -10, SpringLayout.SOUTH, this);
         layout.putConstraint(SpringLayout.WEST, model, 5, SpringLayout.EAST, chooseModel);
         layout.putConstraint(SpringLayout.SOUTH, model, -10, SpringLayout.SOUTH, this);
+        layout.putConstraint(SpringLayout.WEST, getAllParamsFrom, 5, SpringLayout.WEST, this);
+        layout.putConstraint(SpringLayout.SOUTH, getAllParamsFrom, -15, SpringLayout.NORTH, predict);
+        layout.putConstraint(SpringLayout.WEST, paramsIndex, 5, SpringLayout.EAST, getAllParamsFrom);
+        layout.putConstraint(SpringLayout.SOUTH, paramsIndex, -10, SpringLayout.NORTH, predict);
+        layout.putConstraint(SpringLayout.WEST, draw, 5, SpringLayout.EAST, paramsIndex);
+        layout.putConstraint(SpringLayout.SOUTH, draw, -10, SpringLayout.NORTH, predict);
 
         setLayout(layout);
         add(pathField);
@@ -144,6 +164,12 @@ public class MainPanel extends JPanel {
         add(predict);
         add(pathMLField);
         add(loadResults);
+        add(enterOutMidName);
+        add(outMidName);
+        add(getAllParamsFrom);
+        add(paramsIndex);
+        add(loadInputs);
+        add(draw);
         loadResults.setVisible(false);
         pathMLField.setVisible(false);
         predict.setVisible(false);
@@ -153,6 +179,12 @@ public class MainPanel extends JPanel {
         outputPanel.setVisible(false);
         inputPanel.setVisible(false);
         switchToSimulation.setVisible(false);
+        enterOutMidName.setVisible(false);
+        outMidName.setVisible(false);
+        getAllParamsFrom.setVisible(false);
+        paramsIndex.setVisible(false);
+        loadInputs.setVisible(false);
+        draw.setVisible(false);
         repaint();
     }
 
@@ -415,6 +447,12 @@ public class MainPanel extends JPanel {
         outputPanel.setVisible(true);
         inputPanel.setVisible(true);
         switchToSimulation.setVisible(true);
+        enterOutMidName.setVisible(true);
+        outMidName.setVisible(true);
+        getAllParamsFrom.setVisible(true);
+        paramsIndex.setVisible(true);
+        loadInputs.setVisible(true);
+        draw.setVisible(true);
         pathField.setVisible(false);
         loadPath.setVisible(false);
         sendRandomJob.setVisible(false);
@@ -438,6 +476,12 @@ public class MainPanel extends JPanel {
         outputPanel.setVisible(false);
         inputPanel.setVisible(false);
         switchToSimulation.setVisible(false);
+        enterOutMidName.setVisible(false);
+        outMidName.setVisible(false);
+        getAllParamsFrom.setVisible(false);
+        paramsIndex.setVisible(false);
+        loadInputs.setVisible(false);
+        draw.setVisible(false);
         pathField.setVisible(true);
         loadPath.setVisible(true);
         sendRandomJob.setVisible(true);
@@ -451,7 +495,7 @@ public class MainPanel extends JPanel {
         samplesNumberField.setVisible(true);
     }
 
-    public void loadPath(){
+    public void loadInputs(){
         inputPanel.parameters.clear();
         File f1 = new File("inputParameters.txt");
         FileReader fr;
@@ -464,16 +508,26 @@ public class MainPanel extends JPanel {
                     inputPanel.parameters.add(new InputParameter(line));
                 }
             }
+            if(inputPanel.parameters.size()>1) {
+                inputPanel.parameters.get(0).isHorizontalAxis = true;
+                inputPanel.parameters.get(1).isHorizontalAxis = true;
+            }
             fr.close();
             br.close();
             ((DefaultTableModel) inputPanel.table.getModel()).fireTableDataChanged();
-            System.out.println("changed input table:");
-            System.out.println(inputPanel.parameters);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadPath(){
+        loadInputs();
+        try {
             //clear?
             /*
             for(int i=1;i<130;i++) {
                 Process process;
-                String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","getInformationDESY.py", String.valueOf((10 * i))};
+                String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","getInformationDESY.py", String.valueOf((10 * i)), outMidName.getText()};
                 process = Runtime.getRuntime().exec(cmd);
                 InputStream stdout = process.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
@@ -484,7 +538,7 @@ public class MainPanel extends JPanel {
             }
             */
             Process process;
-            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","getInformationDESY.py"};
+            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","getInformationDESY.py", outMidName.getText()};
             process = Runtime.getRuntime().exec(cmd);
             InputStream stdout = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
@@ -492,7 +546,6 @@ public class MainPanel extends JPanel {
             while ((line1 = reader.readLine()) != null) {
                 System.out.println("stdout: " + line1);
             }
-            //Runtime.getRuntime().exec("/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9 getInformationDESY.py");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -578,8 +631,42 @@ public class MainPanel extends JPanel {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        saveInputParameters();
         predict();
+    }
+
+    public void draw(){
+        try {
+            Process process;
+            int xCoord = 0;
+            int yCoord = 1;
+            boolean wasXAssigned = false;
+            for(int i = 0; i< inputPanel.parameters.size();i++){
+                if(inputPanel.parameters.get(i).isHorizontalAxis) {
+                    if (!wasXAssigned) {
+                        xCoord = i;
+                        wasXAssigned = true;
+                    } else{
+                        yCoord = i;
+                    }
+                }
+            }
+            int zCoord = 4;
+            for(int i = 0; i< outputPanel.parameters.size();i++){
+                if(outputPanel.parameters.get(i).isZAxis) {
+                    zCoord = i;
+                }
+            }
+            String[] cmd = {"/afs/ifh.de/user/k/kladov/volume/pythonLocal/bin/python3.9","predict.py", model.getSelectedItem()+" draw", String.valueOf(xCoord), String.valueOf(yCoord), String.valueOf(zCoord),paramsIndex.getText()};
+            process = Runtime.getRuntime().exec(cmd);
+            InputStream stdout = process.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8));
+            String line1;
+            while ((line1 = reader.readLine()) != null) {
+                System.out.println("stdout: " + line1);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void predict(){

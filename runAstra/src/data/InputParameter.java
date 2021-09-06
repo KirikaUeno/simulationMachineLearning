@@ -3,6 +3,7 @@ package data;
 public class InputParameter {
     public String name;
     public double value;
+    public boolean isHorizontalAxis = false;
 
     public InputParameter(String name){
         this.name = name;

@@ -10,15 +10,13 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class OutputParameterPanel extends JPanel {
-    private final MainPanel mainPanel;
     public JTable table;
     public ArrayList<OutputParameter> parameters = new ArrayList<>();
 
-    public OutputParameterPanel(MainPanel mainPanel){
+    public OutputParameterPanel(){
         setPreferredSize(new Dimension(Config.boardWidth*2/3, Config.boardHeight));
         setFocusable(true);
         setName("output panel");
-        this.mainPanel = mainPanel;
         initializeVariables();
     }
 
@@ -36,6 +34,7 @@ public class OutputParameterPanel extends JPanel {
         parameters.add(new OutputParameter("energy_spread"));
         parameters.add(new OutputParameter("emittance_Y"));
         parameters.add(new OutputParameter("emittance_X"));
+        parameters.get(7).isZAxis = true;
         table = new JTable();
         DefaultTableModel dtm = new OutputParameterTable(parameters);
         table.setModel(dtm);

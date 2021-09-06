@@ -3,25 +3,33 @@ import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from matplotlib import cm
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from torch.utils.data import Dataset, SubsetRandomSampler
 from sklearn.tree import DecisionTreeRegressor
 import pickle
-import matplotlib.pyplot as plt
 
 import numpy as np
 import io
+
+
+x_coord = 0
+y_coord = 1
+z_coord = 0
+initial_static = 0
+size_x = 100
+size_y = 100
 
 
 def load_dataset(fname):
     x = []
     y = []
     names = []
+    namesX = []
     local_x = []
     local_y = []
     local_names = []
+    local_namesX = []
     isInput = False
     isOutput = False
     f = io.open(fname, 'r', encoding='utf-8', newline='\n', errors='ignore')
@@ -34,17 +42,20 @@ def load_dataset(fname):
             if local_y != []:
                 y.append(local_y)
                 names.append(local_names)
+                namesX.append(local_namesX)
             continue
         if tokens[0] == "output:":
             isOutput = True
             isInput = False
             local_y = []
             local_names = []
+            local_namesX = []
             if local_x != []:
                 x.append(local_x)
             continue
         if isInput:
             local_x.append(float(tokens[1]))
+            local_namesX.append(tokens[0])
         if isOutput:
             local_y.append(float(tokens[1]))
             local_names.append(tokens[0])
@@ -65,13 +76,13 @@ def load_dataset(fname):
     f.write(info)
     f.close()
     return (x.shape[0] * x / np.sum(np.abs(x), axis=0)).astype(np.float32), (
-                y.shape[0] * y / np.sum(np.abs(y), axis=0)).astype(np.float32), names
+            y.shape[0] * y / np.sum(np.abs(y), axis=0)).astype(np.float32), names, namesX
 
 
 class DESY_dataset(Dataset):
     def __init__(self, path, transform=None):
         self.transform = transform
-        self.datasetX, self.datasetY, self.names = load_dataset(path)
+        self.datasetX, self.datasetY, self.names, self.namesX = load_dataset(path)
 
     def __len__(self):
         return len(self.datasetY)
@@ -108,7 +119,7 @@ def train_model(model, train_loader, loss, optimizer, num_epochs, scheduler=None
 
             loss_accum += loss_value
 
-        if scheduler != None:
+        if scheduler is not None:
             scheduler.step()
 
         ave_loss = loss_accum / i_step
@@ -123,7 +134,6 @@ def train_model(model, train_loader, loss, optimizer, num_epochs, scheduler=None
 
 
 def train_NN():
-    # 2d:
     print("start nn training")
     train_dataset = DESY_dataset("informationCorrected.txt")
     print("dataset created")
@@ -159,30 +169,6 @@ def train_NN():
     train_model(nn_model, train_loader, loss, optimizer, 4000, scheduler)
     print("trained nn")
     torch.save(nn_model.state_dict(), 'nnModel.pt')
-    X, y, names = load_dataset("informationCorrected.txt")
-    from operator import add
-
-    if np.array(train_dataset[:][0][0, :]).shape[0] == 2:
-        X = np.array(train_dataset[:][0][:, 0])
-        Y = np.array(train_dataset[:][0][:, 1])
-        Z = np.array(train_dataset[:][1][:, 1])
-        x_surf, y_surf = np.meshgrid(
-            np.linspace(X.min() - (X.max() - X.min()) / 10, X.max() + (X.max() - X.min()) / 10, 100),
-            np.linspace(Y.min() - (Y.max() - Y.min()) / 10, Y.max() + (Y.max() - Y.min()) / 10, 100))
-
-        model_viz = np.expand_dims(np.array([x_surf.flatten(), y_surf.flatten()]).T,0)
-        print(torch.tensor(model_viz).shape)
-        z_surf = np.array(nn_model(torch.FloatTensor(model_viz))[0,:, 1].tolist())
-
-        fig = plt.figure(figsize=(20, 16))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(X, Y, Z, c='red', marker='o', alpha=0.5)
-        ax.plot_surface(x_surf, y_surf, z_surf.reshape(x_surf.shape), alpha=0.4, cmap=cm.coolwarm, linewidth=0,
-                        antialiased=False)
-        ax.set_xlabel('MAXB')
-        ax.set_ylabel('QBUNCH')
-        ax.set_zlabel('alphaX')
-        plt.show()
 
 
 def train_tree():
@@ -196,27 +182,6 @@ def train_tree():
     filename = 'treeModel.sav'
     pickle.dump(regr, open(filename, 'wb'))
     print("end train tree")
-
-    train_dataset = DESY_dataset("informationCorrected.txt")
-    if np.array(train_dataset[:][0][0, :]).shape[0] == 2:
-        X = np.array(train_dataset[:][0][:, 0])
-        Y = np.array(train_dataset[:][0][:, 1])
-        Z = np.array(train_dataset[:][1][:, 1])
-        x_surf, y_surf = np.meshgrid(
-            np.linspace(X.min() - (X.max() - X.min()) / 10, X.max() + (X.max() - X.min()) / 10, 100),
-            np.linspace(Y.min() - (Y.max() - Y.min()) / 10, Y.max() + (Y.max() - Y.min()) / 10, 100))
-        model_viz = np.array([x_surf.flatten(), y_surf.flatten()]).T
-        z_surf = regr.predict(model_viz)[:, 1]
-
-        fig = plt.figure(figsize=(20, 16))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(X, Y, Z, c='red', marker='o', alpha=0.5)
-        ax.plot_surface(x_surf, y_surf, z_surf.reshape(x_surf.shape), alpha=0.4, cmap=cm.coolwarm, linewidth=0,
-                        antialiased=False)
-        ax.set_xlabel('MAXB')
-        ax.set_ylabel('QBUNCH')
-        ax.set_zlabel('alphaX')
-        plt.show()
 
 
 def train_tree_boost():
@@ -232,27 +197,6 @@ def train_tree_boost():
     filename = 'treeBoostModel.sav'
     pickle.dump(est, open(filename, 'wb'))
     print("end train tree")
-
-    train_dataset = DESY_dataset("informationCorrected.txt")
-    if np.array(train_dataset[:][0][0, :]).shape[0] == 2:
-        X = np.array(train_dataset[:][0][:, 0])
-        Y = np.array(train_dataset[:][0][:, 1])
-        Z = np.array(train_dataset[:][1][:, 1])
-        x_surf, y_surf = np.meshgrid(
-            np.linspace(X.min() - (X.max() - X.min()) / 10, X.max() + (X.max() - X.min()) / 10, 100),
-            np.linspace(Y.min() - (Y.max() - Y.min()) / 10, Y.max() + (Y.max() - Y.min()) / 10, 100))
-        model_viz = np.array([x_surf.flatten(), y_surf.flatten()]).T
-        z_surf = est.predict(model_viz)[:, 1]
-
-        fig = plt.figure(figsize=(20, 16))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(X, Y, Z, c='red', marker='o', alpha=0.5)
-        ax.plot_surface(x_surf, y_surf, z_surf.reshape(x_surf.shape), alpha=0.4, cmap=cm.coolwarm, linewidth=0,
-                        antialiased=False)
-        ax.set_xlabel('First parameter')
-        ax.set_ylabel('Second parameter')
-        ax.set_zlabel('alphaX')
-        plt.show()
 
 
 def train(model):

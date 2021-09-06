@@ -21,7 +21,7 @@ public class OutputParameterTable extends DefaultTableModel {
     }
 
     public int getColumnCount() {
-        return 3;
+        return 4;
     }
 
     public String getColumnName(int columnIndex) {
@@ -32,17 +32,19 @@ public class OutputParameterTable extends DefaultTableModel {
                 return "parameter";
             case 2:
                 return "prediction";
+            case 3:
+                return "plot?";
             default:
                 return null;
         }
     }
 
     public Class<?> getColumnClass(int columnIndex) {
-        return (columnIndex==0)?Boolean.class:Object.class;
+        return (columnIndex==0 || columnIndex==3)?Boolean.class:Object.class;
     }
 
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == 0;
+        return (columnIndex == 0 || columnIndex == 3);
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
@@ -55,6 +57,8 @@ public class OutputParameterTable extends DefaultTableModel {
                 return au.name;
             case 2:
                 return au.estimatedValue;
+            case 3:
+                return au.isZAxis;
             default:
                 return "";
         }
@@ -66,5 +70,12 @@ public class OutputParameterTable extends DefaultTableModel {
         if (columnIndex == 0) {
             au.estimate = (boolean)obj;
         }
+        if (columnIndex == 3) {
+            for (OutputParameter p : auList) {
+                p.isZAxis = false;
+            }
+            au.isZAxis = true;
+        }
+        this.fireTableRowsUpdated(0,auList.size()-1);
     }
 }

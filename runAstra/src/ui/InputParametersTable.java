@@ -8,6 +8,8 @@ import java.util.List;
 public class InputParametersTable extends DefaultTableModel {
 
     public List<InputParameter> auList;
+    public int firstPlotInd = 0;
+    public int secondPlotInd = 1;
 
     public InputParametersTable(List<InputParameter> _auList) {
         this.auList = _auList;
@@ -21,7 +23,7 @@ public class InputParametersTable extends DefaultTableModel {
     }
 
     public int getColumnCount() {
-        return 2;
+        return 3;
     }
 
     public String getColumnName(int columnIndex) {
@@ -29,16 +31,19 @@ public class InputParametersTable extends DefaultTableModel {
             return "parameter";
         } else if (columnIndex == 1) {
             return "value";
+        } else if (columnIndex == 2) {
+            return "plot?";
         }
         return null;
     }
 
     public Class<?> getColumnClass(int columnIndex) {
+        if(columnIndex == 2) return Boolean.class;
         return Object.class;
     }
 
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == 1;
+        return columnIndex != 0;
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
@@ -48,6 +53,8 @@ public class InputParametersTable extends DefaultTableModel {
             return au.name;
         } else if (columnIndex == 1) {
             return au.value;
+        } else if (columnIndex == 2) {
+            return au.isHorizontalAxis;
         }
         return "";
     }
@@ -61,6 +68,20 @@ public class InputParametersTable extends DefaultTableModel {
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
+        }
+        if (columnIndex == 2) {
+            if(rowIndex>firstPlotInd && rowIndex>secondPlotInd){
+                auList.get(secondPlotInd).isHorizontalAxis = false;
+                secondPlotInd = rowIndex;
+            } else if (rowIndex>firstPlotInd && rowIndex<secondPlotInd){
+                auList.get(firstPlotInd).isHorizontalAxis = false;
+                firstPlotInd = rowIndex;
+            } else if (rowIndex<firstPlotInd && rowIndex <secondPlotInd){
+                auList.get(secondPlotInd).isHorizontalAxis = false;
+                secondPlotInd = firstPlotInd;
+                firstPlotInd = rowIndex;
+            }
+            au.isHorizontalAxis = true;
         }
     }
 }

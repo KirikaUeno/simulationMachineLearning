@@ -8,8 +8,6 @@ import os.path
 from numpy import savetxt
 
 
-z_coordinate = "0528"
-
 def get_inputs_main(main_input):
     values_to_find_input = []
     f = io.open("inputParameters.txt", 'r', encoding='utf-8', newline='\n', errors='ignore')
@@ -59,9 +57,9 @@ def get_outputs(output_file):
     return answer
 
 
-def load_dataset_csv():
+def load_dataset_csv(mid_file_name):
     x_dict = get_inputs_main("run" + str(0) + ".in")
-    y_dict = get_outputs("run" + str(0) + "."+z_coordinate+".001")
+    y_dict = get_outputs("run" + str(0) + "." + mid_file_name + ".001")
 
     arrX = np.array([list(x_dict.values())])
     arrY = np.array([list(y_dict.values())])
@@ -69,7 +67,7 @@ def load_dataset_csv():
     import os.path
     while os.path.exists("run" + str(i + 1) + ".in"):
         x_dict = get_inputs_main("run" + str(i + 1) + ".in")
-        y_dict = get_outputs("run" + str(i + 1) + "."+z_coordinate+".001")
+        y_dict = get_outputs("run" + str(i + 1) + "." + mid_file_name + ".001")
 
         arrX = np.concatenate((arrX, np.array([list(x_dict.values())])))
         arrY = np.concatenate((arrY, np.array([list(y_dict.values())])))
@@ -78,16 +76,16 @@ def load_dataset_csv():
     savetxt("informationY.csv", arrY, delimiter=",")
 
 
-def load_dataset_txt():
+def load_dataset_txt(mid_file_name):
     info = ""
     f = open("information.txt", "w")
     i = -1
     print("start python")
-    while os.path.exists("run" + str(i+1) + "."+z_coordinate+".001"):
+    while os.path.exists("run" + str(i + 1) + "." + mid_file_name + ".001"):
         print(i)
         i += 1
         x_dict = get_inputs_main("run" + str(i) + ".in")
-        y_dict = get_outputs("run" + str(i) + "."+z_coordinate+".001")
+        y_dict = get_outputs("run" + str(i) + "." + mid_file_name + ".001")
 
         info += "input:" + "\n"
         for j in range(len(x_dict)):
@@ -96,15 +94,15 @@ def load_dataset_txt():
         for j in range(len(y_dict)):
             info += (str(list(y_dict.keys())[j]) + " " + str(list(y_dict.values())[j]) + "\n")
         try:
-            os.system("rm "+"run" + str(i) + ".LandF.001")
-            os.system("rm "+"run" + str(i) + ".Xemit.001")
-            os.system("rm "+"run" + str(i) + ".Yemit.001")
-            os.system("rm "+"run" + str(i) + ".Zemit.001")
-            os.system("rm "+"run" + str(i) + ".log")
-            os.system("rm "+"run" + str(i) + ".Log.001")
-            os.system("rm "+"run" + str(i) + ".ref.001")
-            os.system("rm "+"o_out" + str(i) + ".txt")
-            os.system("rm "+"e_out" + str(i) + ".txt")
+            os.system("rm " + "run" + str(i) + ".LandF.001")
+            os.system("rm " + "run" + str(i) + ".Xemit.001")
+            os.system("rm " + "run" + str(i) + ".Yemit.001")
+            os.system("rm " + "run" + str(i) + ".Zemit.001")
+            os.system("rm " + "run" + str(i) + ".log")
+            os.system("rm " + "run" + str(i) + ".Log.001")
+            os.system("rm " + "run" + str(i) + ".ref.001")
+            os.system("rm " + "o_out" + str(i) + ".txt")
+            os.system("rm " + "e_out" + str(i) + ".txt")
         except Exception:
             pass
     f.write(info)
@@ -112,27 +110,27 @@ def load_dataset_txt():
     print("end python")
 
 
-def delete_files(ini):
+def delete_files(ini, mid_file_name):
     print("start python")
     for j in range(10):
-        print(j+ini)
-        i=j+ini
+        print(j + ini)
+        i = j + ini
         try:
-            os.system("rm "+"run" + str(i) + ".in")
-            os.system("rm "+"run" + str(i) + ".LandF.001")
-            os.system("rm "+"run" + str(i) + ".Xemit.001")
-            os.system("rm "+"run" + str(i) + ".Yemit.001")
-            os.system("rm "+"run" + str(i) + ".Zemit.001")
-            os.system("rm "+"run" + str(i) + ".log")
-            os.system("rm "+"run" + str(i) + ".Log.001")
-            os.system("rm "+"run" + str(i) + ".ref.001")
-            os.system("rm "+"o_out" + str(i) + ".txt")
-            os.system("rm "+"e_out" + str(i) + ".txt")
-            os.system("rm "+"run" + str(i) + "."+z_coordinate+".001")
+            os.system("rm " + "run" + str(i) + ".in")
+            os.system("rm " + "run" + str(i) + ".LandF.001")
+            os.system("rm " + "run" + str(i) + ".Xemit.001")
+            os.system("rm " + "run" + str(i) + ".Yemit.001")
+            os.system("rm " + "run" + str(i) + ".Zemit.001")
+            os.system("rm " + "run" + str(i) + ".log")
+            os.system("rm " + "run" + str(i) + ".Log.001")
+            os.system("rm " + "run" + str(i) + ".ref.001")
+            os.system("rm " + "o_out" + str(i) + ".txt")
+            os.system("rm " + "e_out" + str(i) + ".txt")
+            os.system("rm " + "run" + str(i) + "." + mid_file_name + ".001")
         except Exception:
             pass
     print("end python")
 
 
-#delete_files(int(sys.argv[1]))
-load_dataset_txt()
+# delete_files(int(sys.argv[1]),int(sys.argv[2]))
+load_dataset_txt(int(sys.argv[1]))
